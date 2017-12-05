@@ -87,27 +87,38 @@ def aumentarCadena(cadena1):
 def insert_mongodb(dict_paste):
 	db.Pastebin.update({"url":dict_paste["url"], "data":dict_paste["data"]},dict_paste,True)
 	return True
-
 def main():
-	urb_base = "https://pastebin.com/"
+	print "WELCOME TO DOWNLOAD PASTEBIN"
+	print "			by @JorgeWebsec"
+	
+TAG_RE = re.compile(r'<[^>]+>')
+def remove_tags(text):
+	return TAG_RE.sub('', text)
+	
+if __name__ == '__main__':
+	main()
 	bucle = True
-
 	while bucle:
+		url_base = "https://pastebin.com/"
 		password = toClave(cadena)
 		url = url_base + password
 		print url
-		response = requests.get(url)
+		try:
+			response = requests.get(url)
+		except:
+			print "[ERROR] connection reset by peer..."
 		html = response.text
 		soup = BeautifulSoup(html, "html.parser")
-		info_user = soup.find("div", {"class":"paste_box_line2"}).text.split("\n")
-		data = soup.find("div",{"id":"selectable"}).text
-		dict_paste={"url":url,"user":info_user[1].strip(), "date":info_user[2].strip(), "data":data}
-		insert_mongodb(dict_paste)
-
+		
+		data = soup.find("div",{"id":"selectable"})
+		if data:
+			data = str(remove_tags(data))
+			info_user = soup.find("div", {"class":"paste_box_line2"}).text.split("\n")
+			dict_paste={"url":url,"user":info_user[1].strip(), "date":info_user[2].strip(), "data":data}
+			insert_mongodb(dict_paste)
+			print "[URL][>] " + url + " DOWNLOAD..."
+		else:
+			print "[URL][>] " + url + "[INFO] No existe la url o ha sido eliminado..."
 		if isMax(cadena):
-		 bucle = False
+		 	bucle = False
 		cadena = aumentarCadena(cadena)
-	
-
-if __name__ == '__main__':
-	main()
